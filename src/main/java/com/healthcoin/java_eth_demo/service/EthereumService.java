@@ -6,6 +6,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthBlockNumber;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Convert;
 import com.healthcoin.java_eth_demo.contracts.RaewooCoin; // 1단계에서 생성한 Wrapper 클래스
 import org.springframework.beans.factory.annotation.Value;
@@ -87,5 +88,26 @@ public class EthereumService {
         RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
 
         return tokenContract.symbol().send();
+    }
+
+    /**
+     * transfer ERC-20 token to specific address
+     * @param toAddress address that receives the tokens
+     * @param amount amount to send in unit ETH
+     * @return transaction hash
+     */
+    public String sendToken(String toAddress, BigDecimal amount) throws Exception {
+        // Load the contract: load the contract object using Wrapper class(RaewooCoin).
+        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
+
+        // Translate ETH to Wei
+        BigInteger amountInWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
+
+        // Call transfer function from contract, and send the token.
+        // At the moment .send() is called, the transaction, signed with private key in application.properties, will be sent to Alchemy node.
+        TransactionReceipt transactionReceipt = tokenContract.transfer(toAddress, amountInWei).send();
+
+        // Return the transaction hash.
+        return transactionReceipt.getTransactionHash();
     }
 }
