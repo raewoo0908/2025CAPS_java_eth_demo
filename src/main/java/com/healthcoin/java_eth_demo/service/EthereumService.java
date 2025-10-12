@@ -66,4 +66,26 @@ public class EthereumService {
         // Return the balance in Ether.
         return Convert.fromWei(new BigDecimal(balanceInWei), Convert.Unit.ETHER);
     }
+
+    /**
+     * Get full Name of ERC-20 Token.
+     * @return Name of Token.
+     */
+    public String getTokenName() throws Exception {
+        // Load the contract: load the contract object using Wrapper class(RaewooCoin).
+        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
+
+        return tokenContract.name().send();
+    }
+
+    /**
+     * Get full Symbol of ERC-20 Token.
+     * @return Symobl of Token.
+     */
+    public String getTokenSymbol() throws Exception {
+        // Load the contract: load the contract object using Wrapper class(RaewooCoin).
+        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
+
+        return tokenContract.symbol().send();
+    }
 }

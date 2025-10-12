@@ -56,9 +56,10 @@ class EthereumServiceTest {
 
         // when: 토큰 잔액 조회 실행
         BigDecimal tokenBalance = ethereumService.getTokenBalance(ownerAddress);
+        String symbol = ethereumService.getTokenSymbol();
 
         // then: 결과를 검증
-        System.out.println("✅ Token Balance of " + ownerAddress + ": " + tokenBalance + " MFT");
+        System.out.println("✅ Token Balance of " + ownerAddress + ": " + tokenBalance + " " + symbol);
         assertThat(tokenBalance).isNotNull(); // 결과가 null이 아니어야 함
         assertThat(tokenBalance).isGreaterThan(BigDecimal.ZERO); // 토큰이 있으므로 0보다 커야 함
     }
