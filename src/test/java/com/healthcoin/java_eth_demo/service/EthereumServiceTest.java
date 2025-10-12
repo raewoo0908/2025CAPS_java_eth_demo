@@ -45,4 +45,21 @@ class EthereumServiceTest {
         assertThat(balance).isNotNull(); // 결과가 null이 아니어야 함
         assertThat(balance).isGreaterThanOrEqualTo(BigDecimal.ZERO); // 0 이상이어야 함
     }
+
+    @Test
+    @DisplayName("특정 주소의 ERC-20 토큰 잔액을 성공적으로 가져와야 한다")
+    void getTokenBalance() throws Exception {
+        // given: 테스트를 위한 준비
+        // 이 주소는 당신이 토큰을 발행했을 때 토큰을 가지고 있는 주소여야 합니다.
+        // 보통 컨트랙트를 배포한 당신의 지갑 주소가 됩니다.
+        String ownerAddress = "0x0e3293250183089Ec77582310061833Cb1113961";
+
+        // when: 토큰 잔액 조회 실행
+        BigDecimal tokenBalance = ethereumService.getTokenBalance(ownerAddress);
+
+        // then: 결과를 검증
+        System.out.println("✅ Token Balance of " + ownerAddress + ": " + tokenBalance + " MFT");
+        assertThat(tokenBalance).isNotNull(); // 결과가 null이 아니어야 함
+        assertThat(tokenBalance).isGreaterThan(BigDecimal.ZERO); // 토큰이 있으므로 0보다 커야 함
+    }
 }

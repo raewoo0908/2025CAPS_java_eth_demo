@@ -3,6 +3,7 @@ package com.healthcoin.java_eth_demo.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
 
@@ -14,10 +15,19 @@ public class Web3jConfig {
     @Value("${alchemy.api-url}")
     private String alchemyApiUrl;
 
+    @Value("${wallet.private-key}")
+    private String privateKey;
+
     // Register the object returned by this method as a Bean.
     @Bean
     public Web3j web3j() {
         // Generate and return the Web3j object using injected URL.
         return Web3j.build(new HttpService(alchemyApiUrl));
+    }
+
+    @Bean
+    public Credentials credentials() {
+        // 읽어온 개인키 문자열로 Credentials 객체를 생성하여 반환
+        return Credentials.create(privateKey);
     }
 }
