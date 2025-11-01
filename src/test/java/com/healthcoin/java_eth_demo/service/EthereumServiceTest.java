@@ -1,6 +1,7 @@
 package com.healthcoin.java_eth_demo.service;
 
 import com.fasterxml.jackson.databind.annotation.JsonAppend;
+import net.bytebuddy.pool.TypePool;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -201,8 +202,7 @@ class EthereumServiceTest {
 
         // 1. Prerequisite: Approve (Spender = Server Wallet, Owner = Server Wallet)
         BigDecimal amount = new BigDecimal("0.1"); // transferFrom 테스트용 소량
-        Map<String, String> approveResult = ethereumService.approveToken(credentials.getAddress(), amount);
-        waitForTransaction(approveResult.get("transactionHash"));
+        waitForTransaction(lastTxHash);
 
         BigDecimal initialBalance = ethereumService.getTokenBalance(RECIPIENT_ADDRESS);
 

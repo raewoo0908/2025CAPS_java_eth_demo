@@ -128,7 +128,7 @@ public class EthereumService {
         RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
         BigInteger amountInWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
 
-        TransactionReceipt receipt = tokenContract.transfer(spenderAddress, amountInWei).send();
+        TransactionReceipt receipt = tokenContract.approve(spenderAddress, amountInWei).send();
 
         return Map.of(
                 "transactionHash", receipt.getTransactionHash(),
