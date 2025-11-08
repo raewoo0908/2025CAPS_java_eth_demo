@@ -123,11 +123,11 @@ public class EthereumService {
      * @param tokenContractAddress Token contract
      * @param spenderAddress address to be approved
      * @param ownerCredential credential object
-     * @param amount amount to approve to withdraw
-     * @return transaction hash, from, to address
+     * @param amount amount to approve to withdraw in ETH
+     * @return transaction receipt
      * @throws Exception
      */
-    public Map<String, String> approveToken(String tokenContractAddress,
+    public TransactionReceipt approveToken(String tokenContractAddress,
                                             Credentials ownerCredential,
                                             String spenderAddress,
                                             BigDecimal amount) throws Exception {
@@ -136,12 +136,7 @@ public class EthereumService {
 
         TransactionReceipt receipt = tokenContract.approve(spenderAddress, amountInWei).send();
 
-        return Map.of(
-                "transactionHash", receipt.getTransactionHash(),
-                "fromAddress", receipt.getFrom(), // 트랜잭션을 보낸 주소 (우리 서버 지갑)
-                "toAddress", receipt.getTo(),     // 트랜잭션이 전송된 주소 (토큰 컨트랙트)
-                "spenderAddress", spenderAddress    // approve 함수에 인자로 넘긴 주소
-        );
+        return receipt;
     }
 
     /**

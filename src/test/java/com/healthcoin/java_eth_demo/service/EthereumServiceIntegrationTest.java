@@ -144,13 +144,13 @@ class EthereumServiceIntegrationTest {
         // Owner(credentials)가 Recipient(recipientAddress)에게 AMOUNT_TO_APPROVE 만큼 승인
 
         // when
-        Map<String, String> result = ethereumService.approveToken(tokenContractAddress, myWalletCredentials, spenderAddress, AMOUNT_TO_APPROVE);
+        TransactionReceipt receipt = ethereumService.approveToken(tokenContractAddress, myWalletCredentials, spenderAddress, AMOUNT_TO_APPROVE);
 
         // then
-        assertThat(result.get("transactionHash")).isNotNull().startsWith("0x");
-        assertThat(result.get("fromAddress")).isEqualToIgnoringCase(ownerAddress);
-        assertThat(result.get("spenderAddress")).isEqualToIgnoringCase(recipientAddress);
-        System.out.println("approveToken TxHash: " + result.get("transactionHash"));
+        assertThat(receipt.getTransactionHash()).isNotNull().startsWith("0x");
+        assertThat(receipt.getFrom()).isEqualToIgnoringCase(ownerAddress);
+        assertThat(receipt.getTo()).isEqualToIgnoringCase(recipientAddress);
+        System.out.println("approveToken TxHash: " + receipt.getTransactionHash());
     }
 
     // 4. getAllowance (3단계의 승인 내역 확인)
