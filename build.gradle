@@ -40,3 +40,9 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// bootRun 태스크에서 표준 입력(stdin) 활성화
+// CLI 모드에서 Scanner로 사용자 입력을 받을 수 있도록 설정
+bootRun {
+    standardInput = System.in
+}
