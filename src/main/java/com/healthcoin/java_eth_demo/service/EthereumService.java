@@ -8,12 +8,10 @@ import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthBlockNumber;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
-import com.healthcoin.java_eth_demo.contracts.RaewooCoin; // 1단계에서 생성한 Wrapper 클래스
-import org.springframework.beans.factory.annotation.Value;
 import org.web3j.crypto.Credentials;
 import org.web3j.tx.gas.DefaultGasProvider;
+import org.web3j.contracts.eip20.generated.ERC20;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -27,16 +25,6 @@ public class EthereumService {
     // Inject Web3j Bean to we3j object.
     @Autowired
     private Web3j web3j;
-
-    @Autowired
-    private Credentials credentials;
-
-    // Read 'token.contract-address' value from application.properties and inject this var 'contractAddress'.
-    @Value("${token.contract-address}")
-    private String contractAddress;
-
-    @Value("${simplewallet.contract-address}")
-    private String simpleWalletContractAddress;
 
     /**
      * Gets the latest block number of holesky network.
@@ -60,12 +48,17 @@ public class EthereumService {
 
     /**
      * get ERC-20 token balance of specific wallet.
-     * @param ownerAddress wallet address to get balance from.
-     * @return balance of token. (unit: Ether)
+     * @param ownerAddress          wallet address to get balance from.
+     * @param tokenContractAddress  token contract address
+     * @param ownerCredentials      owner credentials
+     * @return
+     * @throws Exception
      */
-    public BigDecimal getTokenBalance(String ownerAddress) throws Exception {
-        // Load the contract: load the contract object using Wrapper class(RaewooCoin).
-        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
+    public BigDecimal getTokenBalance(String ownerAddress,
+                                      String tokenContractAddress,
+                                      Credentials ownerCredentials) throws Exception {
+        // Load the contract
+        ERC20 tokenContract = ERC20.load(tokenContractAddress, web3j, ownerCredentials, new DefaultGasProvider());
 
         // Call balanceOf function from contract.
         BigInteger balanceInWei = tokenContract.balanceOf(ownerAddress).send();
@@ -78,9 +71,10 @@ public class EthereumService {
      * Get full Name of ERC-20 Token.
      * @return Name of Token.
      */
-    public String getTokenName() throws Exception {
-        // Load the contract: load the contract object using Wrapper class(RaewooCoin).
-        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
+    public String getTokenName(String tokenContractAddress,
+                               Credentials credentials) throws Exception {
+        // Load the contract
+        ERC20 tokenContract = ERC20.load(tokenContractAddress, web3j, credentials, new DefaultGasProvider());
 
         return tokenContract.name().send();
     }
@@ -89,22 +83,29 @@ public class EthereumService {
      * Get full Symbol of ERC-20 Token.
      * @return Symobl of Token.
      */
-    public String getTokenSymbol() throws Exception {
-        // Load the contract: load the contract object using Wrapper class(RaewooCoin).
-        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
+    public String getTokenSymbol(String tokenContractAddress,
+                                 Credentials credentials) throws Exception {
+        // Load the contract
+        ERC20 tokenContract = ERC20.load(tokenContractAddress, web3j, credentials, new DefaultGasProvider());
 
         return tokenContract.symbol().send();
     }
 
     /**
      * transfer ERC-20 token to specific address
-     * @param toAddress address that receives the tokens
-     * @param amount amount to send in unit ETH
-     * @return transaction hash
+     * @param tokenContractAddress  token contract address
+     * @param fromCredentials       credentials that send token from
+     * @param toAddress             address that receives the tokens
+     * @param amount                amount to send in unit ETH
+     * @return                      transaction receipt
+     * @throws Exception
      */
-    public String sendToken(String toAddress, BigDecimal amount) throws Exception {
-        // Load the contract: load the contract object using Wrapper class(RaewooCoin).
-        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
+    public TransactionReceipt sendToken(String tokenContractAddress,
+                            Credentials fromCredentials,
+                            String toAddress,
+                            BigDecimal amount) throws Exception {
+        // Load the contract
+        ERC20 tokenContract = ERC20.load(tokenContractAddress, web3j, fromCredentials, new DefaultGasProvider());
 
         // Translate ETH to Wei
         BigInteger amountInWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
@@ -114,39 +115,44 @@ public class EthereumService {
         TransactionReceipt transactionReceipt = tokenContract.transfer(toAddress, amountInWei).send();
 
         // Return the transaction hash.
-        return transactionReceipt.getTransactionHash();
+        return transactionReceipt;
     }
 
     /**
      * approve the spender to withdraw certain amount of Token from my wallet address
+     * @param tokenContractAddress Token contract
      * @param spenderAddress address to be approved
-     * @param amount amount to approve to withdraw
-     * @return transaction hash, from, to address
+     * @param ownerCredential credential object
+     * @param amount amount to approve to withdraw in ETH
+     * @return transaction receipt
      * @throws Exception
      */
-    public Map<String, String> approveToken(String spenderAddress, BigDecimal amount) throws Exception {
-        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
+    public TransactionReceipt approveToken(String tokenContractAddress,
+                                            Credentials ownerCredential,
+                                            String spenderAddress,
+                                            BigDecimal amount) throws Exception {
+        ERC20 tokenContract = ERC20.load(tokenContractAddress, web3j, ownerCredential, new DefaultGasProvider());
         BigInteger amountInWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
 
-        TransactionReceipt receipt = tokenContract.transfer(spenderAddress, amountInWei).send();
+        TransactionReceipt receipt = tokenContract.approve(spenderAddress, amountInWei).send();
 
-        return Map.of(
-                "transactionHash", receipt.getTransactionHash(),
-                "fromAddress", receipt.getFrom(), // 트랜잭션을 보낸 주소 (우리 서버 지갑)
-                "toAddress", receipt.getTo(),     // 트랜잭션이 전송된 주소 (토큰 컨트랙트)
-                "spenderAddress", spenderAddress    // approve 함수에 인자로 넘긴 주소
-        );
+        return receipt;
     }
 
     /**
      * Get how much the spender can withdraw from the owner wallet
-     * @param ownerAddress
-     * @param spenderAddress
+     * @param tokenContractAddress Token Contract address
+     * @param credentials any Credentials
+     * @param ownerAddress EOA who owns the token
+     * @param spenderAddress EOA who are allowed to use the token
      * @return
      * @throws Exception
      */
-    public BigDecimal getAllowance(String ownerAddress, String spenderAddress) throws Exception {
-        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
+    public BigDecimal getAllowance(String tokenContractAddress,
+                                   Credentials credentials,
+                                   String ownerAddress,
+                                   String spenderAddress) throws Exception {
+        ERC20 tokenContract = ERC20.load(tokenContractAddress, web3j, credentials, new DefaultGasProvider());
 
         BigInteger allowanceToWei = tokenContract.allowance(ownerAddress, spenderAddress).send();
 
@@ -154,80 +160,136 @@ public class EthereumService {
     }
 
     /**
-     * In the limit of approved, the wallet transfer
-     * @param fromAddress
-     * @param toAddress
+     * In the limit of approved, the "spender" transfer the token from "owner" to "reciptient".
+     * @param tokenContractAddress
+     * @param spenderCredential
+     * @param ownerCredential
+     * @param ownerAddress
+     * @param recipientAddress
      * @param amount
      * @return
      * @throws Exception
      */
-    public Map<String, String> transferTokenFrom(String fromAddress, String toAddress, BigDecimal amount) throws Exception {
-        RaewooCoin tokenContract = RaewooCoin.load(contractAddress, web3j, credentials, new DefaultGasProvider());
-        BigInteger amountToWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
-
-        TransactionReceipt receipt = tokenContract.transferFrom(fromAddress, toAddress, amountToWei).send();
-
-        return Map.of(
-                "transactionHash", receipt.getTransactionHash(),
-                "fromAddress", receipt.getFrom(), // 토큰이 인출된 주소
-                "toAddress", receipt.getTo()     // 토큰이 전송된 주소
-        );
-    }
-
-    /**
-     * deposit specific amount of token to wallet
-     * @param amount how much to deposit
-     * @return transaction hash
-     * @throws Exception
-     */
-    public String depositToSimpleWallet(BigDecimal amount) throws Exception {
-        TransactionReceipt receipt = Transfer.sendFunds(
-                web3j, credentials, simpleWalletContractAddress,
-                amount, Convert.Unit.ETHER
-        ).send();
-
-        return receipt.getTransactionHash();
-    }
-
-    /**
-     * withdraw specific token from the wallet
-     * @param tokenAddress what token to extract
-     * @param amount how much to be extracted
-     * @return transaction hash
-     * @throws Exception
-     */
-    public String withdrawFromSimpleWallet(String tokenAddress, BigDecimal amount) throws Exception {
-        SimpleWallet walletContract = SimpleWallet.load(simpleWalletContractAddress, web3j, credentials, new DefaultGasProvider());
-        BigInteger amountInWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
-
-        TransactionReceipt receipt = walletContract.withdrawErc20(tokenAddress, amountInWei).send();
-        return receipt.getTransactionHash();
-    }
-
-    /**
-     * Get the transaction receipt from the transaction hash.
-     * @param txHash transaction hash to check
-     * @return transaction receipt. In case of pending, it will return null.
-     */
-    public TransactionReceipt getTransactionReceipt(String txHash) throws Exception {
-        return web3j.ethGetTransactionReceipt(txHash).send().getTransactionReceipt().orElse(null);
-    }
-
-    /**
-     * Check the status of transaction
-     * @param txHash transaction hash to check
-     * @return success: true, else(pending or fail): false
-     */
-    public boolean isTransactionSuccessful(String txHash) throws Exception {
-        TransactionReceipt receipt = getTransactionReceipt(txHash);
-
-        if (receipt == null) {
-            System.out.println("Transaction " + txHash + " is still pending...");
-            return false; //pending
+    public TransactionReceipt transferTokenFrom(String tokenContractAddress,
+                                                 Credentials spenderCredential,
+                                                 Credentials ownerCredential,
+                                                 String ownerAddress,
+                                                 String recipientAddress,
+                                                 BigDecimal amount) throws Exception {
+        // condition 1: allowance must be bigger than amount
+        BigDecimal allowance = getAllowance(tokenContractAddress, spenderCredential, ownerAddress, spenderCredential.getAddress());
+        System.out.println("spenderAddresss: " + spenderCredential.getAddress());
+        if (amount.compareTo(allowance) > 0) {
+            throw new RuntimeException("Amount exceeds allowance. Allowance: " + allowance + " Amount: " + amount);
         }
 
-        // "0x1" (success): true, "0x0" (fail): false
-        return "0x1".equals(receipt.getStatus());
+        //condition 2: owner must have enough token.
+        BigDecimal balance = getTokenBalance(ownerAddress, tokenContractAddress, ownerCredential);
+        if (amount.compareTo(balance) > 0) {
+           throw new RuntimeException("Amount exceeds balance");
+        }
+
+        ERC20 tokenAsSpender = ERC20.load(tokenContractAddress, web3j, spenderCredential, new DefaultGasProvider());
+
+        BigInteger amountInWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
+
+        TransactionReceipt receipt = tokenAsSpender.transferFrom(ownerAddress, recipientAddress, amountInWei).send();
+
+        return receipt;
     }
 
+    /**
+     * Deposit owner's ERC20 to wallet.
+     * @param walletContractAddress wallet CA deposit to
+     * @param ownerCredentials      EOA of token owner
+     * @param tokenContractAddress  token CA to deposit
+     * @param amount                amount of token to deposit
+     * @return                      transaction receipt
+     * @throws Exception
+     */
+    public TransactionReceipt depositERC20(String walletContractAddress,
+                                           Credentials ownerCredentials,
+                                           String tokenContractAddress,
+                                           BigDecimal amount) throws Exception {
+
+        BigDecimal allowance = getAllowance(tokenContractAddress, ownerCredentials, ownerCredentials.getAddress(), walletContractAddress);
+
+        // allowance must be greater than amount.
+        if (amount.compareTo(allowance) > 0) {
+            throw new RuntimeException("Amount exceeds allowance");
+        }
+
+        // amount must be greater than zero
+        if (amount.compareTo(new BigDecimal(0)) <= 0){
+            throw new RuntimeException("Amount must be greater than zero");
+        }
+
+        // load wallet contract on behalf of Owner credentials.
+        SimpleWallet walletContract = SimpleWallet.load(
+                walletContractAddress,
+                web3j,
+                ownerCredentials,
+                new DefaultGasProvider());
+
+        BigInteger amountInWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
+
+        TransactionReceipt receipt = walletContract.depositErc20(tokenContractAddress, amountInWei).send();
+
+        return receipt;
+    }
+
+    /**
+     * Withdraw ERC20 from wallet to specific EOA.
+     * @param walletContractAddress
+     * @param ownerCredentials
+     * @param tokenContractAddress
+     * @param amount
+     * @return
+     * @throws Exception
+     */
+    public TransactionReceipt withdrawERC20(String walletContractAddress,
+                                            Credentials ownerCredentials,
+                                            String tokenContractAddress,
+                                            BigDecimal amount) throws Exception {
+
+        BigDecimal balance = getERC20BalanceFromWallet(walletContractAddress, ownerCredentials, tokenContractAddress);
+
+        // balance must be greater than amount
+        if (amount.compareTo(balance) > 0) {
+            throw new RuntimeException("Amount exceeds balance");
+        }
+
+        SimpleWallet walletContract = SimpleWallet.load(
+                walletContractAddress,
+                web3j,
+                ownerCredentials,
+                new DefaultGasProvider());
+
+        BigInteger amountInWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
+
+        TransactionReceipt receipt = walletContract.withdrawErc20(tokenContractAddress, amountInWei).send();
+
+        return receipt;
+    }
+
+    /**
+     * Get specific owner's balance of ERC20 from wallet.
+     * @param walletContractAddress
+     * @param ownerCredentials
+     * @param tokenContractAddress
+     * @return
+     * @throws Exception
+     */
+    public BigDecimal getERC20BalanceFromWallet(String walletContractAddress, Credentials ownerCredentials, String tokenContractAddress) throws Exception{
+
+        SimpleWallet walletContract = SimpleWallet.load(
+                walletContractAddress,
+                web3j,
+                ownerCredentials,
+                new DefaultGasProvider());
+
+        BigInteger balanceToWei = walletContract.getErc20Balance(tokenContractAddress).send();
+
+        return Convert.fromWei(new BigDecimal(balanceToWei), Convert.Unit.ETHER);
+    }
 }

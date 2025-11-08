@@ -16,7 +16,10 @@ public class Web3jConfig {
     private String alchemyApiUrl;
 
     @Value("${wallet.private-key}")
-    private String privateKey;
+    private String myWalletprivateKey;
+
+    @Value("${test2wallet.private-key}")
+    private String test2walletPrivateKey;
 
     // Register the object returned by this method as a Bean.
     @Bean
@@ -26,8 +29,14 @@ public class Web3jConfig {
     }
 
     @Bean
-    public Credentials credentials() {
+    public Credentials myWalletCredentials() {
         // 읽어온 개인키 문자열로 Credentials 객체를 생성하여 반환
-        return Credentials.create(privateKey);
+        return Credentials.create(myWalletprivateKey);
     }
+
+    @Bean
+    public Credentials test2Credentials() {
+        return Credentials.create(test2walletPrivateKey);
+    }
+
 }

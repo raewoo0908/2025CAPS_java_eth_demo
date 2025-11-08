@@ -38,7 +38,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * <p>Generated with web3j version 1.7.0.
  */
 @SuppressWarnings("rawtypes")
-public class RaewooCoin extends Contract{
+public class MomzzangTestToken extends Contract{
     public static final String BINARY = "Bin file was not provided";
 
     public static final String FUNC_ALLOWANCE = "allowance";
@@ -96,24 +96,24 @@ public class RaewooCoin extends Contract{
     ;
 
     @Deprecated
-    protected RaewooCoin(String contractAddress, Web3j web3j, Credentials credentials,
+    protected MomzzangTestToken(String contractAddress, Web3j web3j, Credentials credentials,
             BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
-    protected RaewooCoin(String contractAddress, Web3j web3j, Credentials credentials,
+    protected MomzzangTestToken(String contractAddress, Web3j web3j, Credentials credentials,
             ContractGasProvider contractGasProvider) {
         super(BINARY, contractAddress, web3j, credentials, contractGasProvider);
     }
 
     @Deprecated
-    protected RaewooCoin(String contractAddress, Web3j web3j, TransactionManager transactionManager,
-            BigInteger gasPrice, BigInteger gasLimit) {
+    protected MomzzangTestToken(String contractAddress, Web3j web3j,
+            TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    protected RaewooCoin(String contractAddress, Web3j web3j, TransactionManager transactionManager,
-            ContractGasProvider contractGasProvider) {
+    protected MomzzangTestToken(String contractAddress, Web3j web3j,
+            TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
@@ -280,25 +280,25 @@ public class RaewooCoin extends Contract{
     }
 
     @Deprecated
-    public static RaewooCoin load(String contractAddress, Web3j web3j, Credentials credentials,
-            BigInteger gasPrice, BigInteger gasLimit) {
-        return new RaewooCoin(contractAddress, web3j, credentials, gasPrice, gasLimit);
+    public static MomzzangTestToken load(String contractAddress, Web3j web3j,
+            Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+        return new MomzzangTestToken(contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
     @Deprecated
-    public static RaewooCoin load(String contractAddress, Web3j web3j,
+    public static MomzzangTestToken load(String contractAddress, Web3j web3j,
             TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
-        return new RaewooCoin(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+        return new MomzzangTestToken(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    public static RaewooCoin load(String contractAddress, Web3j web3j, Credentials credentials,
-            ContractGasProvider contractGasProvider) {
-        return new RaewooCoin(contractAddress, web3j, credentials, contractGasProvider);
+    public static MomzzangTestToken load(String contractAddress, Web3j web3j,
+            Credentials credentials, ContractGasProvider contractGasProvider) {
+        return new MomzzangTestToken(contractAddress, web3j, credentials, contractGasProvider);
     }
 
-    public static RaewooCoin load(String contractAddress, Web3j web3j,
+    public static MomzzangTestToken load(String contractAddress, Web3j web3j,
             TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
-        return new RaewooCoin(contractAddress, web3j, transactionManager, contractGasProvider);
+        return new MomzzangTestToken(contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
     public static class ApprovalEventResponse extends BaseEventResponse {
